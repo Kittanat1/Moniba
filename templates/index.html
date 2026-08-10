@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moniba</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --pink: #f3b3cc;
+      --yellow: #fdf988;
+      --green-soft: #d8f4c8;
+      --peach: #ffdcd0;
+      --slate: #706b6b;
+      --ink: #111111;
+      --muted: #67605e;
+      --surface: #ffffff;
+      --red: #c84f4f;
+      --green: #2f7d45;
+      --line: rgba(0, 0, 0, 0.08);
+      --shadow: 0 16px 36px rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      background: #f4f1f2;
+    }
+
+    button, input, select { font: inherit; }
+
+    button {
+      border: 0;
+      border-radius: 18px;
+      min-height: 38px;
+      padding: 9px 14px;
+      color: var(--ink);
+      background: var(--yellow);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    button.secondary { background: var(--green-soft); }
+    button.danger { color: #ffffff; background: var(--red); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    input, select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 9px 12px;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .app-shell {
+      width: min(100%, 412px);
+      min-height: 917px;
+      padding: 54px 30px 86px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 43px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--pink);
+      text-align: center;
+      z-index: 2;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.15;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.15;
+    }
+
+    .user-box {
+      position: absolute;
+      top: 50px;
+      right: 18px;
+      width: 128px;
+      display: grid;
+      gap: 6px;
+      z-index: 3;
+    }
+    .profile-row {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .profile-picture {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: none;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .profile-name {
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .profile-caption {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 9px;
+    }
+    .user-box label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    .user-box input {
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .user-box button {
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      box-shadow: none;
+    }
+
+    .summary-grid {
+      position: relative;
+      min-height: 157px;
+      margin: 6px 6px 7px;
+      padding: 15px 18px;
+      border-radius: 20px;
+      background: var(--slate);
+      color: #ffffff;
+    }
+
+    .metric {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .metric span, .metric small {
+      display: block;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 400;
+    }
+
+    .metric small { margin-top: 9px; }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.05;
+      font-weight: 400;
+    }
+
+    .metric.balance {
+      position: absolute;
+      left: 20px;
+      top: 13px;
+      width: 175px;
+    }
+
+    .metric.balance strong {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 30px;
+      color: #ffffff;
+    }
+
+    .metric.income {
+      position: absolute;
+      left: 28px;
+      bottom: 20px;
+      width: 70px;
+    }
+
+    .metric.expense {
+      position: absolute;
+      left: 100px;
+      bottom: 20px;
+      width: 82px;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255, 255, 255, 0.75);
+    }
+
+    .metric.bnpl {
+      position: absolute;
+      right: 12px;
+      top: 10px;
+      width: 109px;
+      min-height: 135px;
+      padding: 12px;
+      border-radius: 20px;
+      color: var(--ink);
+      background: var(--yellow);
+    }
+
+    .metric.bnpl span, .metric.bnpl small {
+      font-size: 10px;
+    }
+
+    .metric.bnpl strong {
+      margin-top: 2px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .limit-field {
+      margin-top: 7px;
+      color: var(--ink);
+      font-size: 10px;
+    }
+
+    .limit-field input {
+      min-height: 28px;
+      margin-top: 3px;
+      border-radius: 12px;
+      padding: 5px 7px;
+      text-align: center;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+
+    .tabs {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 10;
+      width: min(100%, 412px);
+      height: 54px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      transform: translateX(-50%);
+      background: var(--pink);
+    }
+
+    .tab {
+      min-height: 54px;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      font-size: 0;
+      color: var(--ink);
+    }
+
+    .tab::before {
+      display: block;
+      font-size: 25px;
+      line-height: 54px;
+      text-align: center;
+    }
+
+    .tab[data-tab="overview"]::before { content: "◔"; }
+    .tab[data-tab="bnpl"]::before { content: "▥"; }
+    .tab[data-tab="transactions"]::before { content: "▣"; }
+    .tab[data-tab="health"]::before { content: "▥"; }
+    .tab[data-tab="settings"]::before { content: "☰"; }
+    .tab.active::before { transform: scale(1.15); font-weight: 900; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 0;
+      border-radius: 20px;
+      padding: 14px 12px;
+      box-shadow: none;
+      background: var(--surface);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    #tab-transactions > .panel:first-child,
+    #tab-reports { background: var(--green-soft); }
+
+    #tab-transactions > .panel:last-child,
+    #tab-bnpl > .panel:last-child { background: var(--peach); }
+
+    #tab-bnpl > .panel:first-child,
+    #tab-alerts { background: var(--yellow); }
+
+    .form-grid {
+      display: grid;
+      gap: 9px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .two-cols, .filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+    }
+
+    .filters {
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 12px;
+      align-items: end;
+    }
+
+    .filters button { min-height: 36px; }
+
+    .list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .list-item, .empty, .notice {
+      border: 0;
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: none;
+    }
+
+    .item-head { display: grid; gap: 8px; }
+
+    .item-title {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .item-meta, .empty, .notice {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .amount {
+      font-size: 13px;
+      font-weight: 800;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .amount.income { color: var(--green); }
+    .amount.expense { color: var(--red); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .actions button {
+      min-height: 30px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      box-shadow: none;
+    }
+
+    .progress {
+      height: 7px;
+      margin-top: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #efefef;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      background: var(--pink);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: var(--ink);
+      background: #fff4b3;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.late { color: #9b1f1f; background: #ffd3d3; }
+    .badge.done { color: #245f37; background: var(--green-soft); }
+
+    #tab-bnpl, #tab-overview, #tab-health, #tab-settings { margin-top: 14px; }
+    #tab-bnpl.workspace { grid-template-columns: 1fr; }
+    #tab-overview, #tab-health, #tab-settings { min-height: 588px; }
+
+    .chart-wrap {
+      min-height: 250px;
+      margin-top: 14px;
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+
+    .auth-panel {
+      margin: 8px 6px 12px;
+      padding: 14px 12px;
+      border-radius: 20px;
+      background: var(--yellow);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-panel h2 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .auth-panel .form-grid {
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .auth-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .line-login-button {
+      width: 100%;
+      margin-top: 8px;
+      color: #ffffff;
+      background: #06c755;
+    }
+
+    .health-grid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .setting-profile {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 18px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      text-align: center;
+    }
+
+    .setting-profile img {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .setting-profile strong {
+      font-size: 16px;
+    }
+
+    body.signed-out .summary-grid,
+    body.signed-out .tabs,
+    body.signed-out main > section:not(#authPanel) {
+      display: none !important;
+    }
+
+    body.signed-in #authPanel {
+      display: none !important;
+    }
+
+    .auth-panel {
+      margin: 22px auto 12px;
+      padding: 18px 14px;
+      border-radius: 20px;
+      background: var(--yellow);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-panel h2 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .auth-panel .form-grid {
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .auth-switch-line {
+      margin: 10px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .auth-link-button {
+      width: 100%;
+      margin-top: 8px;
+      background: var(--green-soft);
+      box-shadow: none;
+    }
+
+    .social-login-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .line-login-button,
+    .google-login-button {
+      width: 100%;
+      color: #ffffff;
+    }
+
+    .line-login-button { background: #06c755; }
+    .google-login-button { background: #ffffff; color: var(--ink); }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 66px;
+      z-index: 20;
+      width: min(330px, calc(100% - 40px));
+      padding: 12px 14px;
+      border-radius: 18px;
+      color: #ffffff;
+      background: var(--slate);
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      transition: 0.2s ease;
+      pointer-events: none;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (min-width: 760px) {
+      body {
+        background: #fffafa;
+      }
+
+      .app-shell {
+        width: 100%;
+        min-height: 100vh;
+        padding: 96px 32px 32px;
+        overflow: visible;
+      }
+
+      .topbar {
+        position: fixed;
+        height: 72px;
+        justify-content: space-between;
+        padding: 0 32px;
+        box-shadow: var(--shadow);
+      }
+
+      .brand {
+        text-align: left;
+      }
+
+      .brand h1 {
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .brand p {
+        font-size: 15px;
+      }
+
+      .user-box {
+        position: fixed;
+        top: 12px;
+        right: 32px;
+        width: 330px;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+      }
+      .profile-name {
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      .profile-caption {
+        color: #5c414a;
+        font-size: 11px;
+      }
+      .user-box label {
+        color: #5c414a;
+        font-size: 12px;
+      }
+
+      .user-box input {
+        min-height: 40px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.72);
+        font-size: 13px;
+      }
+
+      .user-box button {
+        min-height: 40px;
+        padding: 8px 16px;
+        font-size: 13px;
+        box-shadow: var(--shadow);
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 2fr) repeat(2, minmax(150px, 1fr)) minmax(260px, 1.1fr);
+        gap: 16px;
+        min-height: auto;
+        margin: 0 0 20px;
+        padding: 0;
+        color: var(--ink);
+        background: transparent;
+      }
+
+      .metric,
+      .metric.balance,
+      .metric.income,
+      .metric.expense,
+      .metric.bnpl {
+        position: static;
+        width: auto;
+        min-height: 150px;
+        padding: 22px;
+        border-radius: 24px;
+        border: 0;
+        box-shadow: var(--shadow);
+      }
+
+      .metric.balance {
+        color: #ffffff;
+        background: var(--slate);
+      }
+
+      .metric.income { background: var(--green-soft); }
+      .metric.expense { background: var(--peach); }
+      .metric.bnpl { background: var(--yellow); }
+
+      .metric span, .metric small, .metric.bnpl span, .metric.bnpl small {
+        font-size: 15px;
+      }
+
+      .metric strong,
+      .metric.balance strong,
+      .metric.bnpl strong {
+        margin-top: 14px;
+        text-align: left;
+        font-size: 34px;
+        font-weight: 700;
+      }
+
+      .limit-field input {
+        max-width: 180px;
+        text-align: left;
+      }
+
+      .tabs {
+        position: sticky;
+        top: 84px;
+        left: auto;
+        bottom: auto;
+        width: 100%;
+        height: auto;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        transform: none;
+        padding: 10px;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .tab {
+        min-height: 46px;
+        border-radius: 18px;
+        font-size: 14px;
+      }
+
+      .tab::before { display: none; }
+      .tab.active { background: var(--yellow); }
+
+      .workspace {
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      #tab-bnpl.workspace {
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      }
+
+      #tab-bnpl, #tab-reports, #tab-alerts {
+        margin-top: 20px;
+      }
+
+      .panel {
+        padding: 22px;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel h2 {
+        text-align: left;
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .two-cols {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 180px minmax(220px, 1fr) auto auto;
+      }
+
+      .item-head {
+        grid-template-columns: 1fr auto;
+        align-items: start;
+      }
+
+      .item-title { font-size: 15px; }
+      .item-meta, .empty, .notice { font-size: 13px; }
+      .amount { font-size: 16px; }
+
+      #tab-reports, #tab-alerts {
+        min-height: auto;
+      }
+
+      .chart-wrap {
+        min-height: 340px;
+      }
+
+  
+    .auth-panel {
+      margin: 8px 6px 12px;
+      padding: 14px 12px;
+      border-radius: 20px;
+      background: var(--yellow);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-panel h2 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .auth-panel .form-grid {
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .auth-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .line-login-button {
+      width: 100%;
+      margin-top: 8px;
+      color: #ffffff;
+      background: #06c755;
+    }
+
+    .health-grid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .setting-profile {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 18px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      text-align: center;
+    }
+
+    .setting-profile img {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .setting-profile strong {
+      font-size: 16px;
+    }
+
+    body.signed-out .summary-grid,
+    body.signed-out .tabs,
+    body.signed-out main > section:not(#authPanel) {
+      display: none !important;
+    }
+
+    body.signed-in #authPanel {
+      display: none !important;
+    }
+
+    .auth-panel {
+      margin: 22px auto 12px;
+      padding: 18px 14px;
+      border-radius: 20px;
+      background: var(--yellow);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-panel h2 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .auth-panel .form-grid {
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .auth-switch-line {
+      margin: 10px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .auth-link-button {
+      width: 100%;
+      margin-top: 8px;
+      background: var(--green-soft);
+      box-shadow: none;
+    }
+
+    .social-login-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .line-login-button,
+    .google-login-button {
+      width: 100%;
+      color: #ffffff;
+    }
+
+    .line-login-button { background: #06c755; }
+    .google-login-button { background: #ffffff; color: var(--ink); }
+    .toast {
+        bottom: 24px;
+      }
+    }
+  </style>
+</head>
+<body class="signed-out" data-liff-id="{{ liff_id }}" data-google-client-id="{{ google_client_id }}">
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <h1>ภาพรวม</h1>
+        <p id="currentMonthLabel">เดือนปัจจุบัน</p>
+      </div>
+      <div class="top-auth-hidden" hidden>
+        <img id="profilePicture" class="profile-picture" alt="LINE profile">
+        <div id="profileName" class="profile-name">ยังไม่ได้เข้าสู่ระบบ</div>
+        <input id="lineUserId" value="ยังไม่ได้เข้าสู่ระบบ" readonly>
+        <button id="loadUserBtn" type="button" disabled>รีเฟรช</button>
+      </div>    </header>
+
+
+    <section id="authPanel" class="auth-panel">
+      <h2 id="authTitle">เข้าสู่ระบบ</h2>
+
+      <form id="manualLoginForm" class="form-grid">
+        <label>
+          อีเมล
+          <input type="email" id="loginEmail" autocomplete="email" required>
+        </label>
+        <label>
+          รหัสผ่าน
+          <input type="password" id="loginPassword" autocomplete="current-password" minlength="6" required>
+        </label>
+        <button id="manualLoginBtn" type="submit">เข้าสู่ระบบ</button>
+      </form>
+
+      <p class="auth-switch-line">ยังไม่มีบัญชีใช่ไหม</p>
+      <button id="showRegisterBtn" class="auth-link-button" type="button">สมัครสมาชิก</button>
+
+      <form id="manualRegisterForm" class="form-grid" style="margin-top: 9px;" hidden>
+        <label>
+          ชื่อ
+          <input type="text" id="registerName" autocomplete="name" required>
+        </label>
+        <label>
+          อีเมล
+          <input type="email" id="registerEmail" autocomplete="email" required>
+        </label>
+        <label>
+          รหัสผ่าน
+          <input type="password" id="registerPassword" autocomplete="new-password" minlength="6" required>
+        </label>
+        <label>
+          ยืนยันรหัสผ่าน
+          <input type="password" id="registerConfirmPassword" autocomplete="new-password" minlength="6" required>
+        </label>
+        <button id="manualRegisterBtn" type="submit">บันทึกข้อมูล</button>
+        <button id="showLoginBtn" class="secondary" type="button">กลับไปหน้าเข้าสู่ระบบ</button>
+      </form>
+
+      <div class="social-login-grid">
+        <button id="lineLoginBtn" class="line-login-button" type="button">เข้าสู่ระบบด้วย LINE</button>
+        <button id="googleLoginBtn" class="google-login-button" type="button">เข้าสู่ระบบด้วย Google</button>
+        <div id="googleSignInMount"></div>
+      </div>
+    </section>
+    <section class="summary-grid" aria-label="สรุปยอด">
+      <div class="metric balance">
+        <span>ยอดเงินคงเหลือ</span>
+        <strong id="balance">฿0</strong>
+      </div>
+      <div class="metric income">
+        <span>รายรับ</span>
+        <strong id="totalIncome">฿0</strong>
+      </div>
+      <div class="metric expense">
+        <span>รายจ่าย</span>
+        <strong id="totalExpense">฿0</strong>
+      </div>
+      <div class="metric bnpl">
+        <span>เงินอนาคต BNPL</span>
+        <label class="limit-field">
+          Limit
+          <input type="number" id="bnplLimitInput" min="0" step="1" value="40000">
+        </label>
+        <small>Limit คงเหลือ</small>
+        <strong id="bnplRemaining">฿0</strong>
+        <small>หนี้สินรวม <span id="bnplOutstanding">฿0</span></small>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="เมนูหลัก">
+      <button class="tab active" type="button" data-tab="overview">ภาพรวม</button>
+      <button class="tab" type="button" data-tab="bnpl">หนี้ BNPL</button>
+      <button class="tab" type="button" data-tab="transactions">บันทึก</button>
+      <button class="tab" type="button" data-tab="health">สุขภาพการเงิน</button>
+      <button class="tab" type="button" data-tab="settings">ตั้งค่า</button>
+    </nav>
+
+
+    <section id="tab-overview" class="panel">
+      <h2>ภาพรวมรายเดือน</h2>
+      <div class="filters">
+        <label>
+          เดือน
+          <input type="month" id="filterMonth">
+        </label>
+        <label>
+          หมวดหมู่
+          <input type="text" id="filterCategory" placeholder="ทั้งหมด">
+        </label>
+        <button id="filterBtn" type="button">กรอง</button>
+        <button id="clearFilterBtn" class="secondary" type="button">เดือนนี้</button>
+      </div>
+      <div id="overviewList" class="list"></div>
+      <div id="reportList" class="list" style="margin-top: 9px;"></div>
+      <div class="chart-wrap">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </section>
+    <section id="tab-transactions" class="workspace">
+      <form id="transactionForm" class="panel">
+        <h2>บันทึกรายการ</h2>
+        <div class="form-grid">
+          <label>
+            ประเภท
+            <select id="txType" required>
+              <option value="expense">รายจ่าย</option>
+              <option value="income">รายรับ</option>
+            </select>
+          </label>
+          <label>
+            จำนวนเงิน
+            <input type="number" id="txAmount" min="0" step="0.01" required>
+          </label>
+          <label>
+            วันที่
+            <input type="date" id="txDate" required>
+          </label>
+          <label>
+            หมวดหมู่
+            <input type="text" id="txCategory" list="categoryOptions" placeholder="อาหาร">
+          </label>
+          <label>
+            โน้ต
+            <input type="text" id="txNote" placeholder="รายละเอียด">
+          </label>
+          <button type="submit">บันทึก</button>
+        </div>
+      </form>
+
+      <section class="panel">
+        <h2>รายการเดือนนี้</h2>
+        <div id="txList" class="list"></div>
+      </section>
+    </section>
+
+    <section id="tab-bnpl" class="workspace" hidden>
+      <form id="bnplForm" class="panel">
+        <h2>เงินอนาคต BNPL</h2>
+        <div class="form-grid">
+          <label>
+            ชื่อสินค้า/บริการ
+            <input type="text" id="itemName" required>
+          </label>
+          <div class="two-cols">
+            <label>
+              ยอดรวม
+              <input type="number" id="totalAmount" min="0" step="0.01" required>
+            </label>
+            <label>
+              ยอดต่อเดือน
+              <input type="number" id="installmentAmount" min="0" step="0.01" required>
+            </label>
+          </div>
+          <div class="two-cols">
+            <label>
+              จำนวนงวด
+              <input type="number" id="installmentsTotal" min="1" step="1" required>
+            </label>
+            <label>
+              ครบกำหนดรอบถัดไป
+              <input type="date" id="dueDate" required>
+            </label>
+          </div>
+          <button type="submit">เพิ่มรายการ</button>
+        </div>
+      </form>
+
+      <section class="panel">
+        <h2>ยอดที่ต้องชำระ</h2>
+        <div id="bnplList" class="list"></div>
+      </section>
+    </section>
+    <section id="tab-health" class="panel" hidden>
+      <h2>วิเคราะห์สุขภาพทางการเงิน</h2>
+      <div id="healthList" class="health-grid"></div>
+      <div class="notice" style="margin-top: 12px;">
+        หน้านี้คำนวณจากรายรับ รายจ่าย และหนี้ BNPL ของเดือนที่เลือก เพื่อดูความมั่งคั่งสุทธิและกระแสเงินสดสุทธิ
+      </div>
+      <div id="alertList" class="list" style="margin-top: 12px;"></div>
+    </section>
+
+    <section id="tab-settings" class="panel" hidden>
+      <h2>ตั้งค่า</h2>
+      <div class="setting-profile">
+        <img id="settingsProfilePicture" alt="LINE profile">
+        <strong id="settingsProfileName">LINE User</strong>
+        <span id="settingsLineUserId" class="item-meta">-</span>
+        <button id="logoutBtn" class="danger" type="button">ออกจากระบบ</button>
+      </div>
+    </section>
+  </main>
+
+  <datalist id="categoryOptions">
+    <option value="อาหาร">
+    <option value="เดินทาง">
+    <option value="บ้าน">
+    <option value="สุขภาพ">
+    <option value="ช้อปปิ้ง">
+    <option value="เงินเดือน">
+    <option value="ผ่อนชำระ">
+    <option value="BNPL">
+  </datalist>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
